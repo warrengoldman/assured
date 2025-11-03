@@ -1,6 +1,7 @@
 package com.rest.assured.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,14 @@ public class HomeController {
     @GetMapping("/get/{some}")
     public ResponseEntity<String> doGet(@PathVariable(name="some") String some, @RequestParam(name="key") String key, @RequestBody String json) throws Exception{
         return getStringResponseEntity("get", some, key, json);
+    }
+
+    public record JsonResponse(String httpType, String path, String key, JsonNode body){}
+
+    @GetMapping("/get/{some}/object")
+    public ResponseEntity<JsonResponse> doGetRetObj(@PathVariable(name="some") String some, @RequestParam(name="key") String key, @RequestBody String json) throws Exception{
+        JsonNode jsonNode = new ObjectMapper().readTree(json);
+        return ResponseEntity.ok(new JsonResponse("get", some, key, jsonNode));
     }
 
     @PutMapping("/put/{some}")
