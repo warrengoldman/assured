@@ -49,20 +49,40 @@ public class HomeControllerTest {
     @Test
     public void doGet() throws Exception {
         Response response =
-            spec
-                .queryParam("key", "somefilter")
-                .header("Content-Type", "application/json")
-                .body("""
+                spec
+                        .queryParam("key", "somefilter")
+                        .header("Content-Type", "application/json")
+                        .body("""
                     {
                         "product": "Cheese Grater"
                     }
                     """)
-                .when().get("/get/product");
+                        .when().get("/get/product");
         response.then().assertThat().statusCode(200);
         String jsonBody = response.body().asString();
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(jsonBody);
         assertThat(jsonNode.get("httpType").asText(), equalTo("get"));
         assertThat(jsonNode.get("body").get("product").asText(), equalTo("Cheese Grater"));
+    }
+
+    @Test // test only exists to illustrate where logging can be placed to allow for debugging
+    public void doGet_withLogging() throws Exception {
+        Response response =
+                spec
+                    .log().all() //  this will log the request data, some options besides all
+                        // method, uri, body, parameters, cookies, headers
+                    .queryParam("key", "somefilter")
+                    .header("Content-Type", "application/json")
+                    .body("""
+                        {
+                            "product": "Cheese Grater"
+                        }
+                    """)
+                    .when().get("/get/product");
+        response.then()
+                .log().all() //  this will log the response data, some options besides all
+                // body, cookies, headers, status
+                .assertThat().statusCode(200);
     }
 }
