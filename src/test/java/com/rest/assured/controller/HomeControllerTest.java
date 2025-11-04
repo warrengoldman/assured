@@ -166,11 +166,11 @@ public class HomeControllerTest {
         String expectedKey = "some filter";
         String expectedHttpType = "get";
         Response request =
-                spec
-                        .queryParam("key", expectedKey)
-                        .header("Content-Type", "application/json")
-                        .body(expectedProduct)
-                        .when().get("/"+expectedHttpType+"/"+expectedPath+"/object");
+            spec
+                .queryParam("key", expectedKey)
+                .header("Content-Type", "application/json")
+                .body(expectedProduct)
+                .when().get("/"+expectedHttpType+"/"+expectedPath+"/object");
         ValidatableResponse response = request.then();
         response.body("httpType", equalTo(expectedHttpType));
         response.body("path", equalTo(expectedPath));
@@ -189,5 +189,28 @@ public class HomeControllerTest {
                                                 && !obj1.get("custId").equals(obj2.custId())))
                         .toList();
         assertThat(changedElements.size(), equalTo(0));
+    }
+
+    @Test
+    public void doGet_error()  {
+        Product expectedProduct = getProduct();
+        String expectedPath = "product";
+        String expectedKey = "orders";
+        String expectedHttpType = "get";
+        Response request =
+            spec
+                .queryParam("key", expectedKey)
+                .header("Content-Type", "application/json")
+                .body(expectedProduct)
+                .when().get("/"+expectedHttpType+"/"+expectedPath+"/error");
+        ValidatableResponse response = request.then();
+        response.body("httpType", equalTo(expectedHttpType));
+        response.body("path", equalTo(expectedPath));
+        response.body("key", equalTo(expectedKey));
+        response.body("body.product", equalTo(expectedProduct.product));
+        Collection<LinkedHashMap<String, ?>> orders = response.extract().body().jsonPath().get("body.orders");
+        // the error api removes one element from orders (passed as key)
+        int expectedSizeReduced = expectedProduct.orders.size() - 1;
+        assertThat(orders.size(), equalTo(expectedSizeReduced));
     }
 }

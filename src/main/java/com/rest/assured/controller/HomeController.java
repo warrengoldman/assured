@@ -3,11 +3,10 @@ package com.rest.assured.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
 
 @RestController
 @RequestMapping("/home")
@@ -27,6 +26,16 @@ public class HomeController {
     @GetMapping("/get/{some}/object")
     public ResponseEntity<JsonResponse> doGetRetObj(@PathVariable(name="some") String some, @RequestParam(name="key") String key, @RequestBody String json) throws Exception{
         JsonNode jsonNode = new ObjectMapper().readTree(json);
+        return ResponseEntity.ok(new JsonResponse("get", some, key, jsonNode));
+    }
+
+    @GetMapping("/get/{some}/error")
+    public ResponseEntity<JsonResponse> doGetRetRemovesNode(@PathVariable(name="some") String some, @RequestParam(name="key") String key, @RequestBody String json) throws Exception{
+        JsonNode jsonNode = new ObjectMapper().readTree(json);
+        JsonNode arr = jsonNode.get(key);
+        if (arr.isArray()) {
+            ((ArrayNode)arr).remove(0);
+        }
         return ResponseEntity.ok(new JsonResponse("get", some, key, jsonNode));
     }
 
