@@ -202,6 +202,9 @@ public class HomeControllerTest {
                         .queryParam("key", expectedKey)
                         .header("Content-Type", "application/json")
                         .body(expectedProduct)
+                        // the .get call dictates the actual http method
+                        // however in our test controller, the httpType is
+                        // ALSO part of the path (mainly for documentation)
                         .when().get("/"+expectedHttpType+"/"+expectedPath+"/object");
         ValidatableResponse response = request.then();
         response.body("httpType", equalTo(expectedHttpType));
