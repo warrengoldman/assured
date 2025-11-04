@@ -158,7 +158,7 @@ public class HomeControllerTest {
     }
 
     @DataProvider(name="product")
-    public Product[] getProduct() {
+    public Product[] getProducts() {
         // the test bound to this will run once per element in Product[]
         return new Product[] {
             new Product("Cheese Grater", getOrders())
