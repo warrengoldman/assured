@@ -3,11 +3,16 @@ package com.rest.assured.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
+import io.restassured.response.ResponseBodyExtractionOptions;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import java.util.Collection;
+import java.util.LinkedHashMap;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -23,7 +28,7 @@ public class HomeControllerTest {
     }
 
     @Test
-    public void doGetObject() throws Exception {
+    public void doGetObject() {
         Response response =
                 spec
                         .queryParam("key", "somefilter")
@@ -67,7 +72,7 @@ public class HomeControllerTest {
     }
 
     @Test // test only exists to illustrate where logging can be placed to allow for debugging
-    public void doGet_withLogging() throws Exception {
+    public void doGet_withLogging() {
         Response response =
                 spec
                     .log().all() //  this will log the request data, some options besides all
@@ -84,5 +89,53 @@ public class HomeControllerTest {
                 .log().all() //  this will log the response data, some options besides all
                 // body, cookies, headers, status
                 .assertThat().statusCode(200);
+    }
+
+    @Test
+    public void doGet_extract_response()  {
+        Response request =
+            spec
+                .queryParam("key", "somefilter")
+                .header("Content-Type", "application/json")
+                .body("""
+                   {
+                        "product": "Cheese Grater",
+                        "orders":
+                            [
+                                {
+                                    "qty": 1,
+                                    "price": 12.55,
+                                    "custId": "Jack Smith-123"
+                                },
+                                {
+                                    "qty": 23,
+                                    "price": 8.55,
+                                    "custId": "Big Company-346"
+                                },
+                                {
+                                    "qty": 5,
+                                    "price": 10.55,
+                                    "custId": "Med Company-789"
+                                }
+                            ]
+                    }
+                """)
+                .when().get("/get/product/object");
+        ValidatableResponse response = request.then();
+        response.body("httpType", equalTo("get"));
+        response.body("body.product", equalTo("Cheese Grater"));
+        response.body("body.orders.size()", equalTo(3));
+        ExtractableResponse<Response> extractedResponse = response.extract();
+        assertThat(extractedResponse.contentType(), equalTo("application/json"));
+        ResponseBodyExtractionOptions body = extractedResponse.body();
+        assertThat(body.jsonPath().get("httpType"), equalTo("get"));
+        System.out.println("Price:" + body.jsonPath().get("body.orders[1].price"));
+        System.out.println("CustId:" + body.jsonPath().get("body.orders[2].custId"));
+        Collection<LinkedHashMap<String, ?>> orders = body.jsonPath().get("body.orders");
+        for (LinkedHashMap<String, ?> order : orders) {
+            System.out.println(order.get("qty"));
+            System.out.println(order.get("price"));
+            System.out.println(order.get("custId"));
+        }
     }
 }
