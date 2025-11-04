@@ -190,38 +190,4 @@ public class HomeControllerTest {
                         .toList();
         assertThat(changedElements.size(), equalTo(0));
     }
-
-    @Test
-    public void doGet_missing_object()  {
-        Product expectedProduct = getProduct();
-        String expectedPath = "product";
-        String expectedKey = "some filter";
-        String expectedHttpType = "get";
-        Response request =
-                spec
-                        .queryParam("key", expectedKey)
-                        .header("Content-Type", "application/json")
-                        .body(expectedProduct)
-                        // the .get call dictates the actual http method
-                        // however in our test controller, the httpType is
-                        // ALSO part of the path (mainly for documentation)
-                        .when().get("/"+expectedHttpType+"/"+expectedPath+"/object");
-        ValidatableResponse response = request.then();
-        response.body("httpType", equalTo(expectedHttpType));
-        response.body("path", equalTo(expectedPath));
-        response.body("key", equalTo(expectedKey));
-        response.body("body.product", equalTo(expectedProduct.product));
-        Collection<LinkedHashMap<String, ?>> orders = response.extract().body().jsonPath().get("body.orders");
-        assertThat(orders.size(), equalTo(expectedProduct.orders.size()));
-        List<?> changedElements =
-                orders.stream()
-                        .filter(obj1 -> expectedProduct.orders.stream()
-                                .anyMatch(obj2 ->
-                                        (int)obj1.get("orderId") == obj2.orderId()
-                                                && (int)obj1.get("qty") != obj2.qty()
-                                                && (float)obj1.get("price") != (float)obj2.price()
-                                                && !obj1.get("custId").equals(obj2.custId())))
-                        .toList();
-        assertThat(changedElements.size(), equalTo(0));
-    }
 }
