@@ -156,14 +156,13 @@ public class HomeControllerTest {
                 new Order(4,44, 8.55, "Davey Jones-456")
         );
     }
-    private Product getProduct() {
-        return new Product("Cheese Grater", getOrders());
-    }
 
     @DataProvider(name="product")
-    public Product[] getProductFactory() {
+    public Product[] getProduct() {
         // the test bound to this will run once per element in Product[]
-        return new Product[] {getProduct()};
+        return new Product[] {
+            new Product("Cheese Grater", getOrders())
+        };
     }
 
     @Test(dataProvider = "product")
@@ -197,9 +196,8 @@ public class HomeControllerTest {
         assertThat(changedElements.size(), equalTo(0));
     }
 
-    @Test
-    public void doGet_error()  {
-        Product expectedProduct = getProduct();
+    @Test(dataProvider = "product")
+    public void doGet_error(Product expectedProduct)  {
         String expectedPath = "product";
         String expectedKey = "orders";
         String expectedHttpType = "get";
