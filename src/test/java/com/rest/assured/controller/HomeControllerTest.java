@@ -9,6 +9,7 @@ import io.restassured.response.ResponseBodyExtractionOptions;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.util.Collection;
@@ -159,9 +160,14 @@ public class HomeControllerTest {
         return new Product("Cheese Grater", getOrders());
     }
 
-    @Test
-    public void doGet_passing_object()  {
-        Product expectedProduct = getProduct();
+    @DataProvider(name="product")
+    public Product[] getProductFactory() {
+        // the test bound to this will run once per element in Product[]
+        return new Product[] {getProduct()};
+    }
+
+    @Test(dataProvider = "product")
+    public void doGet_passing_object(Product expectedProduct)  {
         String expectedPath = "product";
         String expectedKey = "some filter";
         String expectedHttpType = "get";
