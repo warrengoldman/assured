@@ -13,6 +13,7 @@ import org.testng.annotations.Test;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -116,6 +117,11 @@ public class HomeControllerTest {
                                     "qty": 5,
                                     "price": 10.55,
                                     "custId": "Med Company-789"
+                                },
+                                {
+                                    "qty": 44,
+                                    "price": 7.55,
+                                    "custId": "Big Company-346"
                                 }
                             ]
                     }
@@ -124,7 +130,7 @@ public class HomeControllerTest {
         ValidatableResponse response = request.then();
         response.body("httpType", equalTo("get"));
         response.body("body.product", equalTo("Cheese Grater"));
-        response.body("body.orders.size()", equalTo(3));
+        response.body("body.orders.size()", equalTo(4));
         ExtractableResponse<Response> extractedResponse = response.extract();
         assertThat(extractedResponse.contentType(), equalTo("application/json"));
         ResponseBodyExtractionOptions body = extractedResponse.body();
@@ -137,5 +143,82 @@ public class HomeControllerTest {
             System.out.println(order.get("price"));
             System.out.println(order.get("custId"));
         }
+    }
+
+    public record Order(int orderId, int qty, double price, String custId) {}
+    public record Product(String product, List<Order> orders) {}
+    private List<Order> getOrders() {
+        return List.of(
+                new Order(1,1, 12.55, "Jim Smits-123"),
+                new Order(2, 22, 10.55, "Davey Jones-456"),
+                new Order(3,12, 11.55, "Marco Polo-789"),
+                new Order(4,44, 8.55, "Davey Jones-456")
+        );
+    }
+    private Product getProduct() {
+        return new Product("Cheese Grater", getOrders());
+    }
+
+    @Test
+    public void doGet_passing_object()  {
+        Product expectedProduct = getProduct();
+        String expectedPath = "product";
+        String expectedKey = "some filter";
+        String expectedHttpType = "get";
+        Response request =
+                spec
+                        .queryParam("key", expectedKey)
+                        .header("Content-Type", "application/json")
+                        .body(expectedProduct)
+                        .when().get("/"+expectedHttpType+"/"+expectedPath+"/object");
+        ValidatableResponse response = request.then();
+        response.body("httpType", equalTo(expectedHttpType));
+        response.body("path", equalTo(expectedPath));
+        response.body("key", equalTo(expectedKey));
+        response.body("body.product", equalTo(expectedProduct.product));
+        Collection<LinkedHashMap<String, ?>> orders = response.extract().body().jsonPath().get("body.orders");
+        // fail if they are not the same size
+        assertThat(orders.size(), equalTo(expectedProduct.orders.size()));
+        List<?> changedElements =
+                orders.stream()
+                        .filter(obj1 -> expectedProduct.orders.stream()
+                                .anyMatch(obj2 ->
+                                        (int)obj1.get("orderId") == obj2.orderId()
+                                                && (int)obj1.get("qty") != obj2.qty()
+                                                && (float)obj1.get("price") != (float)obj2.price()
+                                                && !obj1.get("custId").equals(obj2.custId())))
+                        .toList();
+        assertThat(changedElements.size(), equalTo(0));
+    }
+
+    @Test
+    public void doGet_missing_object()  {
+        Product expectedProduct = getProduct();
+        String expectedPath = "product";
+        String expectedKey = "some filter";
+        String expectedHttpType = "get";
+        Response request =
+                spec
+                        .queryParam("key", expectedKey)
+                        .header("Content-Type", "application/json")
+                        .body(expectedProduct)
+                        .when().get("/"+expectedHttpType+"/"+expectedPath+"/object");
+        ValidatableResponse response = request.then();
+        response.body("httpType", equalTo(expectedHttpType));
+        response.body("path", equalTo(expectedPath));
+        response.body("key", equalTo(expectedKey));
+        response.body("body.product", equalTo(expectedProduct.product));
+        Collection<LinkedHashMap<String, ?>> orders = response.extract().body().jsonPath().get("body.orders");
+        assertThat(orders.size(), equalTo(expectedProduct.orders.size()));
+        List<?> changedElements =
+                orders.stream()
+                        .filter(obj1 -> expectedProduct.orders.stream()
+                                .anyMatch(obj2 ->
+                                        (int)obj1.get("orderId") == obj2.orderId()
+                                                && (int)obj1.get("qty") != obj2.qty()
+                                                && (float)obj1.get("price") != (float)obj2.price()
+                                                && !obj1.get("custId").equals(obj2.custId())))
+                        .toList();
+        assertThat(changedElements.size(), equalTo(0));
     }
 }
