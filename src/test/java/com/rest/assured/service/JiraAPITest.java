@@ -15,11 +15,34 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class JiraAPITest {
     private RequestSpecification spec;
-    private static final String BASE_URI = System.getenv("JiraAPI_URI");
-    private static final String REST_API_URI = "/rest/api/3/issue";
+    // Environment variables that must be setup (at the user level is fine)
     private static final String AUTHORIZATION = "Basic " + System.getenv("JiraAPI_key");
+    private static final String BASE_URI = System.getenv("JiraAPI_URI");
+    // URI variables
+    private static final String REST_API_URI = "/rest/api/3/issue";
+    private static final String REST_API_GET_URI = REST_API_URI + "/{key}";
+    private static final String REST_API_ATTACHMENTS_URI = REST_API_GET_URI +"/attachments";
+    // STATIC ticket info (this will need to be altered). These are used by 'get' and 'attach'
     private static final String KNOWN_JIRA_KEY = "SCRUM-5";
     private static final String KNOWN_JIRA_ID = "10006";
+    // STATIC file to be used to attach to jira ticket.
+    private static final String KNOWN_FILE_PATH = "src/main/resources/application.properties";
+    // create body
+    private static final String CREATE_BODY = """
+        {
+            "fields": {
+               "project":
+               {
+                  "key": "SCRUM"
+               },
+               "summary": "a new entry by rest assured",
+               "issuetype": {
+                  "name": "Bug"
+               }
+           }
+        }
+        """;
+
     @BeforeMethod
     public void testSetup() {
         spec = given().spec(new RequestSpecBuilder().setBaseUri(BASE_URI).build())
@@ -37,7 +60,7 @@ public class JiraAPITest {
         ValidatableResponse assertThat = spec
                 .header("Content-Type", "application/json")
                 .pathParam("key", key)
-                .get(REST_API_URI + "/{key}")
+                .get(REST_API_GET_URI)
                 .then();
         assertThat.statusCode(200);
         assertThat.body("id", equalTo(expectedId));
@@ -48,20 +71,7 @@ public class JiraAPITest {
     public void createJiraTicket() {
         ValidatableResponse assertThat = spec
                 .header("Content-Type", "application/json")
-                .body("""
-                {
-                    "fields": {
-                       "project":
-                       {
-                          "key": "SCRUM"
-                       },
-                       "summary": "a new entry by rest assured",
-                       "issuetype": {
-                          "name": "Bug"
-                       }
-                   }
-                }
-                """)
+                .body(CREATE_BODY)
                 .post(REST_API_URI).then();
         assertThat.statusCode(201);
         String id = assertThat.extract().response().jsonPath().get("id");
@@ -71,10 +81,9 @@ public class JiraAPITest {
 
     @DataProvider(name="jiraTicketAttachments")
     private Object[][] getJiraTicketAttachments() {
-        String filepath = "src/main/resources/application.properties";
-        File file = new File(filepath);
+        File file = new File(KNOWN_FILE_PATH);
         if (!file.exists()) {
-            throw new RuntimeException("Cannot find file:" + filepath);
+            throw new RuntimeException("Cannot find file:" + KNOWN_FILE_PATH);
         }
         // TODO could make this grab tickets from jira based on something, instead of hardcoding
         return new Object[][]{ {KNOWN_JIRA_KEY, KNOWN_JIRA_ID, file}};
@@ -86,7 +95,7 @@ public class JiraAPITest {
                 .pathParam("key", expectedId)
                 .header("X-Atlassian-Token", "no-check")
                 .multiPart("file", file)
-                .post(REST_API_URI + "/{key}/attachments")
+                .post(REST_API_ATTACHMENTS_URI)
                 .then();
         assertThat.statusCode(200);
     }
