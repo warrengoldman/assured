@@ -5,6 +5,7 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -23,6 +24,9 @@ public class OAuthTest {
     private static final String CLIENT_SECRET = "erZOWM9g3UtwNRj340YYaK_W";
     private static final String GET_AUTH_URI = "/oauthapi/oauth2/resourceOwner/token";
     private static final String GET_CRED_URI = "/oauthapi/getCourseDetails";
+    public record Course(String courseTitle, String price) {}
+    public record Courses(List<Course> webAutomation, List<Course> api, List<Course> mobile){}
+    public record Curriculum(String instructor, String url, String services, String expertise, Courses courses, String linkedIn) {}
 
     @BeforeMethod
     public void testSetup() {
@@ -31,7 +35,7 @@ public class OAuthTest {
 
     @DataProvider(name="getAuth_getCred")
     public ExtractableResponse[] getAuth_getCred() {
-        if (spec == null) { testSetup(); }
+        if (spec == null) { testSetup(); } // needed because DataProvider annotation does not cause @BeforeMethod to run
         ValidatableResponse assertThat = spec
                 .formParam("client_id", CLIENT_ID)
                 .formParam("client_secret", CLIENT_SECRET)
@@ -47,10 +51,6 @@ public class OAuthTest {
         ValidatableResponse credCall = getCredSpec.param("access_token", access_token).when().get(GET_CRED_URI).then();
         return new ExtractableResponse[]{credCall.extract()};
     }
-
-    public record Course(String courseTitle, String price) {}
-    public record Courses(List<Course> webAutomation, List<Course> api, List<Course> mobile){}
-    public record Curriculum(String instructor, String url, String services, String expertise, Courses courses, String linkedIn) {}
 
     @Test(dataProvider = "getAuth_getCred")
     public void turnToObject(ExtractableResponse extractableResponse) {
@@ -69,6 +69,14 @@ public class OAuthTest {
         System.out.println("\nmobile courses:");
         curriculum.courses.mobile.forEach(printCourse);
         System.out.println("\nLinkedIn: " + curriculum.linkedIn);
+    }
+
+    @Test(dataProvider = "getAuth_getCred")
+    public void printWebAutomationCourseTitles(ExtractableResponse extractableResponse) {
+        List<String> actualCourseTitles = extractableResponse.jsonPath().get("courses.webAutomation.courseTitle");
+        List<String> expectedCourseTitles = List.of("Selenium Webdriver Java", "Cypress", "Protractor");
+        Assert.assertEquals(expectedCourseTitles.size(), actualCourseTitles.size());
+        actualCourseTitles.forEach(courseTitle -> Assert.assertTrue(expectedCourseTitles.contains(courseTitle)));
     }
 
     @Test(dataProvider = "getAuth_getCred")
