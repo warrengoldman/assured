@@ -1,10 +1,13 @@
 package com.rest.assured.service;
 
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.builder.ResponseSpecBuilder;
+import io.restassured.http.ContentType;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
+import io.restassured.specification.ResponseSpecification;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -19,6 +22,7 @@ import static io.restassured.RestAssured.given;
 
 public class OAuthTest {
     private RequestSpecification spec;
+    private ResponseSpecification res;
     private static final String BASE_URI = "https://rahulshettyacademy.com";
     private static final String CLIENT_ID = "692183103107-p0m7ent2hk7suguv4vq22hjcfhcr43pj.apps.googleusercontent.com";
     private static final String CLIENT_SECRET = "erZOWM9g3UtwNRj340YYaK_W";
@@ -31,6 +35,7 @@ public class OAuthTest {
     @BeforeMethod
     public void testSetup() {
         spec = given().spec(new RequestSpecBuilder().setBaseUri(BASE_URI).build());
+        res = new ResponseSpecBuilder().expectStatusCode(200).expectContentType(ContentType.JSON).build();
     }
 
     @DataProvider(name="getAuth_getCred")
@@ -44,7 +49,7 @@ public class OAuthTest {
                 .when()
                 .post(GET_AUTH_URI)
                 .then();
-        assertThat.statusCode(200);
+        assertThat.spec(res);
         String access_token = assertThat.extract().body().jsonPath().get("access_token");
 
         RequestSpecification getCredSpec = given().spec(new RequestSpecBuilder().setBaseUri(BASE_URI).build());
