@@ -1,9 +1,18 @@
 package com.rest.assured.controller;
 
-import jakarta.validation.constraints.NotEmpty;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -13,11 +22,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.rest.assured.JsonResponse;
 import com.rest.assured.RelatedObject;
 import com.rest.assured.SomeObject;
-
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/home")
@@ -34,19 +38,6 @@ public class HomeController {
     @GetMapping("/get/{some}")
     public ResponseEntity<String> doGet(@PathVariable(name="some") String some, @RequestParam(name="key") String key, @RequestBody String json) throws Exception{
         return getStringResponseEntity("get", some, key, json);
-    }
-
-    @PreAuthorize("hasAuthority('SCOPE_lme.admin')")
-    @GetMapping(path = "/status/internal")
-    public ResponseEntity<SomeObject> getCarrierStatusInternal(
-            @RequestParam(value = "carrierId") String carrierId) throws Exception {
-        return getObjects("status-internal", carrierId, null);
-    }
-
-    @GetMapping(path = "/status/external")
-    public ResponseEntity<SomeObject> getCarrierStatusExternal(
-            @RequestParam(value = "carrierId") String carrierId) throws Exception {
-        return getObjects("status-external", carrierId, null);
     }
 
     @GetMapping("/{some}")
