@@ -1,12 +1,20 @@
 package com.rest.assured.controller;
 
+import jakarta.validation.constraints.NotEmpty;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.rest.assured.JsonResponse;
+import com.rest.assured.RelatedObject;
+import com.rest.assured.SomeObject;
+
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -56,9 +64,6 @@ public class HomeController {
             )
         );
     }
-    public record SomeObject(String name, String key, String type, RelatedObject relatedObject) {}
-    public record RelatedObject(Integer id, String name, Boolean active, Date createDate, JsonNode requestBody) {}
-    public record JsonResponse(String httpType, String path, String key, JsonNode body){}
 
     @GetMapping("/get/{some}/object")
     public ResponseEntity<JsonResponse> doGetRetObj(@PathVariable(name="some") String some, @RequestParam(name="key") String key, @RequestBody String json) throws Exception{
