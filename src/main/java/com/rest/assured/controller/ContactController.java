@@ -17,7 +17,7 @@ import com.rest.assured.SomeObject;
 @RestController
 @RequestMapping("/contact")
 public class ContactController {
-    @GetMapping(path = "contact/{contactIds}", produces = MediaType.APPLICATION_JSON_VALUE, headers = "X-API-DOMAIN-CONTEXT=88063dcf-847d-4581-8c8b-565e0aa5d8c2")
+    @GetMapping(path = "/{contactIds}", produces = MediaType.APPLICATION_JSON_VALUE, headers = "X-API-DOMAIN-CONTEXT=88063dcf-847d-4581-8c8b-565e0aa5d8c2")
     public ResponseEntity<List<SomeObject>> getContactInfo(@PathVariable("contactIds") @NotEmpty List<String> contactIds,
             @RequestParam(value = "carrierId") String carrierId) {
         List<SomeObject> carrierContactInfos = contactIds.stream().map(a -> new SomeObject(a, carrierId, "carrierContactInfo", null)).toList();
