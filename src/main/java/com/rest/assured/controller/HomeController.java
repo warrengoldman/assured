@@ -1,5 +1,7 @@
 package com.rest.assured.controller;
 
+import java.util.Date;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,6 +9,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/home")
@@ -21,6 +24,30 @@ public class HomeController {
         return getStringResponseEntity("get", some, key, json);
     }
 
+    @PreAuthorize("hasAuthority('SCOPE_lme.admin')")
+    @GetMapping(path = "/status/internal")
+    public ResponseEntity<SomeObject> getCarrierStatusInternal(
+            @RequestParam(value = "carrierId") String carrierId) throws Exception {
+        return getObjects("status-internal", carrierId, null);
+    }
+
+        @GetMapping("/{some}")
+    public ResponseEntity<SomeObject> getObjects(@PathVariable(name="some") String some, @RequestParam(name="key", required = false) String key, @RequestBody(required = false) String json) throws Exception{
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode = null;
+        if (json != null && !json.isEmpty()) {
+            jsonNode = mapper.readTree(json);
+        }
+        return ResponseEntity.ok(
+            new SomeObject("widget1-"+some , "123-"+some, some,
+                new RelatedObject(456, key == null || key.isEmpty() ? "cousin": key, true, new Date(),
+                    jsonNode
+                )
+            )
+        );
+    }
+    public record SomeObject(String name, String key, String type, RelatedObject relatedObject) {}
+    public record RelatedObject(Integer id, String name, Boolean active, Date createDate, JsonNode requestBody) {}
     public record JsonResponse(String httpType, String path, String key, JsonNode body){}
 
     @GetMapping("/get/{some}/object")

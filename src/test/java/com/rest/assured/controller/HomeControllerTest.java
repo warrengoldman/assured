@@ -189,9 +189,11 @@ public class HomeControllerTest {
                         .filter(obj1 -> expectedProduct.orders.stream()
                                 .anyMatch(obj2 ->
                                         (int)obj1.get("orderId") == obj2.orderId()
-                                                && (int)obj1.get("qty") != obj2.qty()
-                                                && (float)obj1.get("price") != (float)obj2.price()
-                                                && !obj1.get("custId").equals(obj2.custId())))
+                                            && (
+                                                    (int)obj1.get("qty") != obj2.qty()
+                                                    || (float)obj1.get("price") != (float)obj2.price()
+                                                    || !obj1.get("custId").equals(obj2.custId()))
+                                            )
                         .toList();
         assertThat(changedElements.size(), equalTo(0));
     }
