@@ -18,6 +18,10 @@ public class HomeController {
     public ResponseEntity<String> getStatus() {
         return ResponseEntity.ok("Welcome to REST Assured testing application!");
     }
+    @GetMapping("/status/health")
+    public ResponseEntity<String> getStatusHealth() {
+        return ResponseEntity.ok("Application is up and running, from home page!");
+    }
 
     @GetMapping("/get/{some}")
     public ResponseEntity<String> doGet(@PathVariable(name="some") String some, @RequestParam(name="key") String key, @RequestBody String json) throws Exception{
@@ -31,7 +35,13 @@ public class HomeController {
         return getObjects("status-internal", carrierId, null);
     }
 
-        @GetMapping("/{some}")
+    @GetMapping(path = "/status/external")
+    public ResponseEntity<SomeObject> getCarrierStatusExternal(
+            @RequestParam(value = "carrierId") String carrierId) throws Exception {
+        return getObjects("status-external", carrierId, null);
+    }
+
+    @GetMapping("/{some}")
     public ResponseEntity<SomeObject> getObjects(@PathVariable(name="some") String some, @RequestParam(name="key", required = false) String key, @RequestBody(required = false) String json) throws Exception{
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = null;
