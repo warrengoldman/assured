@@ -1,5 +1,6 @@
 package com.rest.assured.controller;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 
 import java.util.List;
@@ -20,7 +21,13 @@ public class ContactController {
     @GetMapping(path = "/{contactIds}", produces = MediaType.APPLICATION_JSON_VALUE, headers = "X-API-DOMAIN-CONTEXT=88063dcf-847d-4581-8c8b-565e0aa5d8c2")
     public ResponseEntity<List<SomeObject>> getContactInfo(@PathVariable("contactIds") @NotEmpty List<String> contactIds,
             @RequestParam(value = "carrierId") String carrierId) {
-        List<SomeObject> carrierContactInfos = contactIds.stream().map(a -> new SomeObject(a, carrierId, "carrierContactInfo", null)).toList();
+        List<SomeObject> carrierContactInfos = contactIds.stream().map(a -> new SomeObject(a, carrierId, "CarrierContactInfo", null)).toList();
         return ResponseEntity.ok(carrierContactInfos);
+    }
+
+    @GetMapping(path = "/detail/{contactId}", produces = MediaType.APPLICATION_JSON_VALUE, headers = "X-API-DOMAIN-CONTEXT=88063dcf-847d-4581-8c8b-565e0aa5d8c2")
+    public ResponseEntity<SomeObject> getContactDetail(@PathVariable("contactId") @NotBlank String contactId,
+            @RequestParam(value = "carrierId") String carrierId) {
+        return ResponseEntity.ok(new SomeObject(contactId, carrierId, "CarrierContactDetail", null));
     }
 }
